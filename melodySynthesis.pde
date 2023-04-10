@@ -1,12 +1,13 @@
 // Based on https://processing.org/tutorials/sound
 
 import processing.sound.*;
+import themidibus.*;
 
 TriOsc triOsc;
 
 Step[] currentBar;
 Step[] previousBar;
-int playerHead = 0;
+int playHead = 0;
 
 // Times and levels for the ASR envelope
 float attackTime = 0.001;
@@ -16,9 +17,14 @@ float releaseTime = 0.2;
 
 int barCount;
 int nextBarChange;
+int rootNote = 54;
+int[] scale;
+ArrayList<Integer> notesInKey;
 
 // This variable stores the point in time when the next note should be triggered
 int nextStepTime = millis();
+
+boolean outputMidi = true;
 
 
 void setup() {
@@ -26,8 +32,15 @@ void setup() {
   background(255);
 
   // Create triangle wave and start it
-  triOsc = new TriOsc(this);
+  if (outputMidi) {
+    
+  } else {
+    triOsc = new TriOsc(this);
+  }
   
+  scale = MINOR_SCALE;
+  notesInKey = getScaleNotes(rootNote, scale);
+
   change();
   
   frameRate(120);
@@ -43,7 +56,7 @@ void change() {
     previousBar = swapTemp;
   } else {
     previousBar = currentBar;
-    currentBar = generateBar(currentBar);
+    currentBar = getBar(currentBar);
   }
   nextBarChange = getNextBarChange();
   barCount = 0;
@@ -60,34 +73,35 @@ void draw() {
   // If the determined nextStepTime matches up with the computer clock check if we should play a note.
   if (millis() > nextStepTime) {
     
-    Step currentStep = currentBar[playerHead];
+    Step currentStep = currentBar[playHead];
     
-    print(playerHead + "  ");
+    print(playHead + "  ");
     
     if (currentStep != null) {
-      triOsc.play(midiToFreq(currentStep.note), 0.5);
-      
-      float sustainDuration = STEP_DURATION * currentStep.duration / 1000;
-      
-      // Create the envelope
-      Env env = new Env(this);
-      env.play(triOsc, attackTime / currentStep.duration, sustainDuration, sustainLevel, releaseTime / currentStep.duration);
+      if (outputMidi) {
+        
+      } else {
+        float sustainDuration = STEP_DURATION * currentStep.duration / 1000;
+        triOsc.play(midiToFreq(currentStep.note), 0.5);
+        // Create the envelope
+        Env env = new Env(this);
+        env.play(triOsc, attackTime / currentStep.duration, sustainDuration, sustainLevel, releaseTime / currentStep.duration);
+      }
     }
 
     nextStepTime = millis() + STEP_DURATION;
 
     // Advance by one note in the midiSequence;
-    playerHead++;
+    playHead++;
 
     // Loop the sequence, notice the jitter
-    if (playerHead == BAR_LENGTH) {
-      playerHead = 0;
+    if (playHead == BAR_LENGTH) {
+      playHead = 0;
       barCount++;
       
       println(' ');
       
       if (barCount > nextBarChange) change();
-      
     }
   }
 }

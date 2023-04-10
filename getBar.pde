@@ -1,4 +1,4 @@
-Step[] generateBar(Step[] currentBar) {
+Step[] getBar(Step[] currentBar) {
   Step[] bar = new Step[BAR_LENGTH];
   
   int pos = 0;
@@ -21,7 +21,7 @@ Step[] generateBar(Step[] currentBar) {
     
     for(pos = 0; pos < BAR_LENGTH; pos++)
       bar[pos] = currentBar[pos] != null 
-        ? new Step(pos == stepToChange ? getNote() : currentBar[pos].note, currentBar[pos].duration) 
+        ? new Step(pos == stepToChange ? getNote(bar, pos) : currentBar[pos].note, currentBar[pos].duration) 
         : null;
   }
   
@@ -45,7 +45,7 @@ Step[] generateBar(Step[] currentBar) {
 
     // silence (duration == 0)?
     if (duration > 0) {
-      bar[pos] = new Step(getNote(), duration);
+      bar[pos] = new Step(getNote(bar, pos), duration);
       pos += duration;
     } else {
       pos += 1;
@@ -68,10 +68,6 @@ float getDuration(float maxDuration) {
         allDurations.add(STEP_SIZES[s]);
   
   return getRandomIntEntry(allDurations);
-}
-
-int getNote() {
-  return floor(random(MIN_NOTE, MAX_NOTE + 1));
 }
 
 int getNextBarChange() {
