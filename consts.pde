@@ -5,14 +5,14 @@ int BAR_LENGTH = 16;
 // 2: 1/8
 // 4: 1/4
 // 8: 1/2
-// 16: 1 (whole note)
+// 16: 1 (whole tone)
 int[] STEP_SIZES = {1, 2, 4, 8, 16};
 
 // higher number means the corresponding step size  is more likely
 int[] STEP_SIZE_PROBABILITY_WEIGHTS = {12, 5, 3, 2, 0};
 int SILENCE_PROBABILITY_WEIGHT = 5;
 
-int[] BAR_CHANGE_PROBABILITY_WEIGHTS = {2, 6, 0, 1};
+int[] BAR_CHANGE_PROBABILITY_WEIGHTS = {2, 6, 0, 0};
 
 // Rhythm probabilities
 float PROBABILITY_OF_COPYING_HALF_OF_LAST_BAR = 0.3;

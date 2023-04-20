@@ -8,7 +8,7 @@ Step[] getBar(Step[] currentBar) {
   boolean shouldChangeOnlyOneNoteFromLastBar = currentBar != null && random(1) <= PROBABILITY_OF_CHANGING_ONLY_ONE_NOTE_FROM_LAST_BAR;
   
   if (shouldUseLastBarsRhythm) {
-    println("using last bars rhythm");
+    println("using last rhythm with different notes");
   }
   
   if (shouldChangeOnlyOneNoteFromLastBar) {
@@ -27,7 +27,7 @@ Step[] getBar(Step[] currentBar) {
   
   // Should we keep half of the previous bar?
   if (shouldCopyHalfOfLastBar) {
-    println("repeating last half");
+    println("repeating first half of last");
     while(pos <= BAR_LENGTH / 2) {
       if(currentBar[pos] != null) {
         bar[pos] = currentBar[pos];

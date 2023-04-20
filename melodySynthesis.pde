@@ -3,7 +3,10 @@
 import processing.sound.*;
 import themidibus.*;
 
+
 TriOsc triOsc;
+MidiBus midiBus;
+SoundFile tickSound;
 
 Step[] currentBar;
 Step[] previousBar;
@@ -23,6 +26,8 @@ ArrayList<Integer> notesInKey;
 
 // This variable stores the point in time when the next note should be triggered
 int nextStepTime = millis();
+int lastNote = -1;
+float lastNoteEndTime;
 
 boolean outputMidi = true;
 
@@ -31,10 +36,13 @@ void setup() {
   size(640, 360);
   background(255);
 
-  // Create triangle wave and start it
   if (outputMidi) {
-    
+    // List all midi devices
+    //MidiBus.list();
+    midiBus = new MidiBus(this, -1, "SOUND");
+    tickSound = new SoundFile(this, "tick.wav");
   } else {
+    // Create triangle wave and start it
     triOsc = new TriOsc(this);
   }
   
@@ -47,10 +55,10 @@ void setup() {
 }
 
 void change() {
-  boolean shouldGoBackToLastBar = previousBar != null && random(1) <= PROBABILITY_OF_CHANGING_ONLY_ONE_NOTE_FROM_LAST_BAR;
+  boolean shouldGoBackToLastBar = previousBar != null && random(1) <= PROBABILITY_OF_GOING_BACK_TO_PREVIOUS_BAR;
   
   if (shouldGoBackToLastBar) {
-    println("going back to last bar");
+    println("going back to previous");
     Step[] swapTemp = currentBar;
     currentBar = previousBar;
     previousBar = swapTemp;
@@ -71,21 +79,33 @@ void change() {
 
 void draw() {
   // If the determined nextStepTime matches up with the computer clock check if we should play a note.
-  if (millis() > nextStepTime) {
+  if (millis() >= nextStepTime) {
+    
+    if (outputMidi && playHead%2 == 0) tickSound.play();
+    
+    if (lastNote >= 0 && millis() >= lastNoteEndTime) { 
+      midiBus.sendNoteOff(0, lastNote, 127);
+      lastNote = -1;
+    }
     
     Step currentStep = currentBar[playHead];
     
     print(playHead + "  ");
     
     if (currentStep != null) {
+      float noteDuration = STEP_DURATION * currentStep.duration / 1000;
+      
       if (outputMidi) {
-        
+        midiBus.sendNoteOn(0, currentStep.note, 127);
+        lastNote = currentStep.note;
+        lastNoteEndTime = millis() + noteDuration;
       } else {
-        float sustainDuration = STEP_DURATION * currentStep.duration / 1000;
-        triOsc.play(midiToFreq(currentStep.note), 0.5);
-        // Create the envelope
-        Env env = new Env(this);
-        env.play(triOsc, attackTime / currentStep.duration, sustainDuration, sustainLevel, releaseTime / currentStep.duration);
+        try {
+          triOsc.play(midiToFreq(currentStep.note), 0.5);
+          // Create the envelope
+          Env env = new Env(this);
+          env.play(triOsc, attackTime / currentStep.duration, noteDuration, sustainLevel, releaseTime / currentStep.duration);
+        } catch (Exception e) {}
       }
     }
 
@@ -104,4 +124,9 @@ void draw() {
       if (barCount > nextBarChange) change();
     }
   }
+}
+
+void exit(){
+  if (lastNote >= 0) midiBus.sendNoteOff(0, lastNote, 127);
+  super.exit();
 }
