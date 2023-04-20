@@ -1,4 +1,8 @@
 int BAR_LENGTH = 16;
+int BPM = 100;
+int BEATS_PER_BAR = 8;
+float STEPS_PER_SECOND = ((float)BPM * (float)BAR_LENGTH / (float)BEATS_PER_BAR) / 60; // in seconds
+float STEP_DURATION = 1 / STEPS_PER_SECOND; 
 
 // Note durations
 // 1: 1/16
@@ -36,8 +40,6 @@ int MAX_NOTE = 72; // C6
 int SHORT_INTERVAL = 4; // two whole tones
 int LARGE_INTERVAL = 8; // four whole tones
 int VERY_LARGE_INTERVAL = 12; // six whole tones
-
-int STEP_DURATION = 200;
 
 int[] MAJOR_SCALE = {2, 2, 1, 2, 2, 2, 1};
 int[] MINOR_SCALE = {2, 1, 2, 2, 1, 2, 2};

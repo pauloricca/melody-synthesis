@@ -27,7 +27,7 @@ ArrayList<Integer> notesInKey;
 // This variable stores the point in time when the next note should be triggered
 int nextStepTime = millis();
 int lastNote = -1;
-float lastNoteEndTime;
+float lastNoteEndStep;
 
 boolean outputMidi = true;
 
@@ -51,7 +51,7 @@ void setup() {
 
   change();
   
-  frameRate(120);
+  frameRate(STEPS_PER_SECOND);
 }
 
 void change() {
@@ -78,12 +78,9 @@ void change() {
 }
 
 void draw() {
-  // If the determined nextStepTime matches up with the computer clock check if we should play a note.
-  if (millis() >= nextStepTime) {
-    
     if (outputMidi && playHead%2 == 0) tickSound.play();
     
-    if (lastNote >= 0 && millis() >= lastNoteEndTime) { 
+    if (lastNote >= 0 && (playHead >= lastNoteEndStep || playHead == 0)) { 
       midiBus.sendNoteOff(0, lastNote, 127);
       lastNote = -1;
     }
@@ -93,28 +90,22 @@ void draw() {
     print(playHead + "  ");
     
     if (currentStep != null) {
-      float noteDuration = STEP_DURATION * currentStep.duration / 1000;
-      
       if (outputMidi) {
         midiBus.sendNoteOn(0, currentStep.note, 127);
         lastNote = currentStep.note;
-        lastNoteEndTime = millis() + noteDuration;
+        lastNoteEndStep = playHead + currentStep.duration;
       } else {
-        try {
-          triOsc.play(midiToFreq(currentStep.note), 0.5);
-          // Create the envelope
-          Env env = new Env(this);
-          env.play(triOsc, attackTime / currentStep.duration, noteDuration, sustainLevel, releaseTime / currentStep.duration);
-        } catch (Exception e) {}
+        float noteDuration = STEP_DURATION * currentStep.duration / 1000;
+        triOsc.play(midiToFreq(currentStep.note), 0.5);
+        // Create the envelope
+        Env env = new Env(this);
+        env.play(triOsc, attackTime / currentStep.duration, noteDuration, sustainLevel, releaseTime / currentStep.duration);
       }
     }
-
-    nextStepTime = millis() + STEP_DURATION;
 
     // Advance by one note in the midiSequence;
     playHead++;
 
-    // Loop the sequence, notice the jitter
     if (playHead == BAR_LENGTH) {
       playHead = 0;
       barCount++;
@@ -123,7 +114,6 @@ void draw() {
       
       if (barCount > nextBarChange) change();
     }
-  }
 }
 
 void exit(){
