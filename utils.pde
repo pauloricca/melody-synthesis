@@ -1,3 +1,5 @@
+import java.util.*;
+
 // This helper function calculates the respective frequency of a MIDI note
 float midiToFreq(int note) {
   return (pow(2, ((note-69)/12.0))) * 440;
@@ -24,6 +26,8 @@ ArrayList<Integer> getScaleNotes(int rootNote, int[] scale) {
     note -= scale[scalePos];
     scalePos = scalePos > 0 ? scalePos - 1 : scale.length - 1;
   } while (note >= MIN_NOTE);
+
+  Collections.sort(notesList);  
 
   return notesList;
 }
